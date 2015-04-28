@@ -499,8 +499,7 @@ class ClosestDotSearchAgent(SearchAgent):
 
         from search import bfs
         return bfs(problem)
-                
-        
+
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
     A search problem for finding a path to any food.
