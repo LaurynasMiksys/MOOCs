@@ -460,14 +460,56 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     x,y = position
-    xDists = [fx - x for (fx, fy) in foodGrid.asList()]
-    yDists = [fy - y for (fx, fy) in foodGrid.asList()]
-    distEast = max(xDists + [0])
-    distWest = - min(xDists + [0])
-    distNorth = max(yDists + [0])
-    distSouth = - min(yDists + [0])
-    return distEast + distWest + distNorth + distSouth
-    
+
+    if len(foodGrid.asList())==0: return 0
+    else:
+        foodBorder = []
+
+        Xs = [food[0] for food in foodGrid.asList()]
+        Ys = [food[1] for food in foodGrid.asList()]
+        W, N, E, S = min(Xs), max(Ys), max(Xs), min(Ys)
+        Wmost = foodGrid.asList()[Xs.index(W)]
+        Nmost = foodGrid.asList()[Ys.index(N)]
+        Emost = foodGrid.asList()[Xs.index(E)]
+        Smost = foodGrid.asList()[Ys.index(S)]
+
+        curPos = Wmost
+        while curPos!=Nmost:
+            i, j = curPos[0], curPos[1]+1
+            while not (i,j) in foodGrid.asList():
+                i, j = (i, j+1) if j < Nmost[1] else (i+1, curPos[1])
+            curPos = (i,j)
+            foodBorder.append(curPos)
+        while curPos!=Emost:
+            i, j = curPos[0]+1, curPos[1]
+            while not (i,j) in foodGrid.asList():
+                i, j = (i+1, j) if i < Emost[0] else (curPos[0], j-1)
+            curPos = (i,j)
+            foodBorder.append(curPos)
+        while curPos!=Smost:
+            i, j = curPos[0], curPos[1]-1
+            while not (i,j) in foodGrid.asList():
+                i, j = (i, j-1) if j > Smost[1] else (i-1, curPos[1])
+            curPos = (i,j)
+            foodBorder.append(curPos)
+        while curPos!=Wmost:
+            i, j = curPos[0]-1, curPos[1]
+            while not (i,j) in foodGrid.asList():
+                i, j = (i-1, j) if i > Wmost[0] else (curPos[0], j+1)
+            curPos = (i,j)
+            foodBorder.append(curPos)
+        if len(foodBorder)==0:
+            foodBorder.append(curPos)
+
+        borderDists = [abs(foodBorder[i-1][0] - foodBorder[i][0]) + abs(foodBorder[i-1][1] - foodBorder[i][1]) 
+                       for i in range(len(foodBorder))]
+        perimeter = sum(borderDists)
+        minusFactor  = [abs(x - foodBorder[i-1][0]) + abs(y - foodBorder[i-1][1]) - borderDists[i-1] 
+                        for i in range(len(borderDists))]
+        minusFactor += [abs(x - foodBorder[i-1][0]) + abs(y - foodBorder[i-1][1]) - borderDists[i] 
+                        for i in range(len(borderDists))]
+
+        return perimeter + min(minusFactor)
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
