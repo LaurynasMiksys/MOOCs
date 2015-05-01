@@ -476,28 +476,32 @@ def foodHeuristic(state, problem):
         curPos = Wmost
         while curPos!=Nmost:
             candidates = set([item for item in foodGrid.asList() 
-                              if (item[0] in range(curPos[0], Nmost[0]+1)) and (item[1] in range(curPos[1], Nmost[1]+1))]) - set([curPos])
+                              if (item[0] in range(curPos[0], Nmost[0]+1)) and 
+                              (item[1] in range(curPos[1], Nmost[1]+1))]) - set([curPos])
             i = min([item[0] for item in candidates])
             j = min([item[1] for item in candidates if item[0]==i])
             curPos = (i,j)
             if not curPos in foodBorder: foodBorder.append(curPos)
         while curPos!=Emost:
             candidates = set([item for item in foodGrid.asList() 
-                              if (item[0] in range(curPos[0], Emost[0]+1)) and (item[1] in range(Emost[1], curPos[1]+1))]) - set([curPos])
+                              if (item[0] in range(curPos[0], Emost[0]+1)) and 
+                              (item[1] in range(Emost[1], curPos[1]+1))]) - set([curPos])
             j = max([item[1] for item in candidates])
             i = min([item[0] for item in candidates if item[1]==j])
             curPos = (i,j)
             if not curPos in foodBorder: foodBorder.append(curPos)
         while curPos!=Smost:
             candidates = set([item for item in foodGrid.asList() 
-                              if (item[0] in range(Smost[0], curPos[0]+1)) and (item[1] in range(Smost[1], curPos[1]+1))]) - set([curPos])
+                              if (item[0] in range(Smost[0], curPos[0]+1)) and 
+                              (item[1] in range(Smost[1], curPos[1]+1))]) - set([curPos])
             i = max([item[0] for item in candidates])
             j = max([item[1] for item in candidates if item[0]==i])
             curPos = (i,j)
             if not curPos in foodBorder: foodBorder.append(curPos)
         while curPos!=Wmost:
             candidates = set([item for item in foodGrid.asList() 
-                              if (item[0] in range(Wmost[0], curPos[0]+1)) and (item[1] in range(curPos[1], Wmost[1]+1))]) - set([curPos])
+                              if (item[0] in range(Wmost[0], curPos[0]+1)) and 
+                              (item[1] in range(curPos[1], Wmost[1]+1))]) - set([curPos])
             j = min([item[1] for item in candidates])
             i = max([item[0] for item in candidates if item[1]==j])
             curPos = (i,j)
@@ -505,7 +509,8 @@ def foodHeuristic(state, problem):
         if len(foodBorder)==0:
             foodBorder.append(curPos)
             
-        borderDists = [abs(foodBorder[i-1][0] - foodBorder[i][0]) + abs(foodBorder[i-1][1] - foodBorder[i][1]) 
+        borderDists = [abs(foodBorder[i-1][0] - foodBorder[i][0]) + 
+                       abs(foodBorder[i-1][1] - foodBorder[i][1]) 
                        for i in range(len(foodBorder))]
         perimeter = sum(borderDists)
         minusFactor  = [abs(x - foodBorder[i-1][0]) + abs(y - foodBorder[i-1][1]) - borderDists[i-1] 
