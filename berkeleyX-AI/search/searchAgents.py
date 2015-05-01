@@ -479,25 +479,25 @@ def foodHeuristic(state, problem):
             while not (i,j) in foodGrid.asList():
                 i, j = (i, j+1) if j < Nmost[1] else (i+1, curPos[1])
             curPos = (i,j)
-            foodBorder.append(curPos)
+            if not curPos in foodBorder: foodBorder.append(curPos)
         while curPos!=Emost:
             i, j = curPos[0]+1, curPos[1]
             while not (i,j) in foodGrid.asList():
                 i, j = (i+1, j) if i < Emost[0] else (curPos[0], j-1)
             curPos = (i,j)
-            foodBorder.append(curPos)
+            if not curPos in foodBorder: foodBorder.append(curPos)
         while curPos!=Smost:
             i, j = curPos[0], curPos[1]-1
             while not (i,j) in foodGrid.asList():
                 i, j = (i, j-1) if j > Smost[1] else (i-1, curPos[1])
             curPos = (i,j)
-            foodBorder.append(curPos)
+            if not curPos in foodBorder: foodBorder.append(curPos)
         while curPos!=Wmost:
             i, j = curPos[0]-1, curPos[1]
             while not (i,j) in foodGrid.asList():
                 i, j = (i-1, j) if i > Wmost[0] else (curPos[0], j+1)
             curPos = (i,j)
-            foodBorder.append(curPos)
+            if not curPos in foodBorder: foodBorder.append(curPos)
         if len(foodBorder)==0:
             foodBorder.append(curPos)
 
