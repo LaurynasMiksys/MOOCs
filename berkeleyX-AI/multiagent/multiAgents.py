@@ -74,8 +74,11 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
         
         "*** YOUR CODE HERE ***"
-        foodScore = 1. / (1 + min([manhattanDistance(newPos, food) for food in newFood.asList()] + [100]))
-        ghostScore = -1. / (0.001 + min([manhattanDistance(newPos, ghostState.configuration.pos) for ghostState in newGhostStates]))
+        foodScore = 1. / (1 + min([manhattanDistance(newPos, food) 
+                                   for food in newFood.asList()] + [100]))
+        ghostScore = -1. / (0.001 + 
+                            min([manhattanDistance(newPos, ghostState.configuration.pos) 
+                                 for ghostState in newGhostStates]))
         
         return successorGameState.getScore() + foodScore + ghostScore
 
@@ -113,7 +116,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
     """
       Your minimax agent (question 2)
     """
-
     def getAction(self, gameState):
         """
           Returns the minimax action from the current gameState using self.depth
@@ -132,7 +134,37 @@ class MinimaxAgent(MultiAgentSearchAgent):
             Returns the total number of agents in the game
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        numAgents = gameState.getNumAgents()
+        maxIter = self.depth * numAgents
+        
+        states = []
+        curStates = [([], gameState)]
+        for depth in range(self.depth):
+            for agentIndex in range(numAgents):
+                newStates = []
+                for actions, state in curStates:
+                    legalActions = state.getLegalActions(agentIndex)
+                    newStates += [(actions + [action], state.generateSuccessor(agentIndex, action)) for action in legalActions]
+                states += newStates
+                curStates = newStates
+        
+        scores = []
+        for item in states[::-1]:
+            actions, state = item
+            if len(actions)==maxIter:
+                scores += [(actions, self.evaluationFunction(state))]
+            else:
+                agentIndex = (len(actions)) % numAgents
+                inputs = [stateScore for actionsScore, stateScore in scores if (actionsScore[:len(actions)]==actions) and (len(actionsScore)==len(actions)+1)]
+                f = max if agentIndex == 0 else min
+                value = f(inputs) if len(inputs)>0 else self.evaluationFunction(state)
+                scores += [(actions, value)]
+
+        actions = [item[0][0] for item in scores if len(item[0])==1]
+        values = [item[1] for item in scores if len(item[0])==1]
+        
+        return actions[values.index(max(values))]
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
