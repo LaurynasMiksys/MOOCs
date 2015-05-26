@@ -17,6 +17,8 @@ from game import Directions
 import random, util
 
 from game import Agent
+from pylearn2.utils import iteration
+from numpy.oldnumeric.random_array import beta
 
 class ReflexAgent(Agent):
     """
@@ -133,37 +135,61 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.getNumAgents():
             Returns the total number of agents in the game
         """
-        "*** YOUR CODE HERE ***"
+#         numAgents = gameState.getNumAgents()
+#         maxIter = self.depth * numAgents
+#          
+#         states = []
+#         curStates = [([], gameState)]
+#         for depth in range(self.depth):
+#             for agentIndex in range(numAgents):
+#                 newStates = []
+#                 for actions, state in curStates:
+#                     legalActions = state.getLegalActions(agentIndex)
+#                     newStates += [(actions + [action], state.generateSuccessor(agentIndex, action)) for action in legalActions]
+#                 states += newStates
+#                 curStates = newStates
+#          
+#         scores = []
+#         for item in states[::-1]:
+#             actions, state = item
+#             if len(actions)==maxIter:
+#                 scores += [(actions, self.evaluationFunction(state))]
+#             else:
+#                 agentIndex = (len(actions)) % numAgents
+#                 inputs = [stateScore for actionsScore, stateScore in scores if (actionsScore[:len(actions)]==actions) and (len(actionsScore)==len(actions)+1)]
+#                 f = max if agentIndex == 0 else min
+#                 value = f(inputs) if len(inputs)>0 else self.evaluationFunction(state)
+#                 scores += [(actions, value)]
+#  
+#         actions = [item[0][0] for item in scores if len(item[0])==1]
+#         values = [item[1] for item in scores if len(item[0])==1]
+#          
+#         return actions[values.index(max(values))]
+
         numAgents = gameState.getNumAgents()
         maxIter = self.depth * numAgents
-        
-        states = []
-        curStates = [([], gameState)]
-        for depth in range(self.depth):
-            for agentIndex in range(numAgents):
-                newStates = []
-                for actions, state in curStates:
-                    legalActions = state.getLegalActions(agentIndex)
-                    newStates += [(actions + [action], state.generateSuccessor(agentIndex, action)) for action in legalActions]
-                states += newStates
-                curStates = newStates
-        
-        scores = []
-        for item in states[::-1]:
-            actions, state = item
-            if len(actions)==maxIter:
-                scores += [(actions, self.evaluationFunction(state))]
+         
+        def NodeValue(state, iteration):
+             
+            if iteration==maxIter:
+                return (None, self.evaluationFunction(state))
             else:
-                agentIndex = (len(actions)) % numAgents
-                inputs = [stateScore for actionsScore, stateScore in scores if (actionsScore[:len(actions)]==actions) and (len(actionsScore)==len(actions)+1)]
-                f = max if agentIndex == 0 else min
-                value = f(inputs) if len(inputs)>0 else self.evaluationFunction(state)
-                scores += [(actions, value)]
-
-        actions = [item[0][0] for item in scores if len(item[0])==1]
-        values = [item[1] for item in scores if len(item[0])==1]
+                agentIndex = iteration % numAgents
+                legalActions = state.getLegalActions(agentIndex)
+                if len(legalActions)==0:
+                    return (None, self.evaluationFunction(state))
+                else:
+                    successors = [state.generateSuccessor(agentIndex, action)
+                                  for action in legalActions]
+                    f = max if agentIndex==0 else min
+                    nodeValues = [NodeValue(successor, iteration+1) for successor in successors]
+                    values = [node[1] for node in nodeValues]
+                    nodeIndex = values.index(f(values))
+                    return legalActions[nodeIndex], values[nodeIndex]
+         
+        action, score = NodeValue(gameState, 0)
+        return action
         
-        return actions[values.index(max(values))]
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
@@ -175,8 +201,48 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        numAgents = gameState.getNumAgents()
+        maxIter = self.depth * numAgents
+        
+        global alpha, beta
+        alpha = -10 ** 8
+        beta = 10 ** 8
+        
+        def NodeValue(state, iteration):
+            
+            global alpha, beta
+            if iteration==maxIter:
+                return (None, self.evaluationFunction(state))
+            else:
+                agentIndex = iteration % numAgents
+                legalActions = state.getLegalActions(agentIndex)
+                if len(legalActions)==0:
+                    return (None, self.evaluationFunction(state))
+                else:
+                    v = -10 ** 8 if agentIndex==0 else 10 ** 8 
+                    for action in legalActions:
+                        extremeAction = None
+                        sucAction, sucValue = NodeValue(state.generateSuccessor(agentIndex, action), iteration+1)
+                        if agentIndex==0:
+                            print agentIndex, action
+                            if v < sucValue:
+                                v = sucValue
+                                extremeAction = action
+                            if v > beta: return extremeAction, v
+                            alpha = max([alpha, v])
+                        else:
+                            print agentIndex, action
+                            if v > sucValue:
+                                v = sucValue
+                                extremeAction = action
+                            if v < alpha: return extremeAction, v
+                            beta = min([beta, v])
+                    return extremeAction, v
+        
+        action, value = NodeValue(gameState, 0)
+        print action, value
+        return action
+            
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
