@@ -207,8 +207,32 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           All ghosts should be modeled as choosing uniformly at random from their
           legal moves.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+    
+        def NodeValue(state, iteration):
+             
+            if iteration==maxIter:
+                return None, self.evaluationFunction(state)
+            else:
+                agentIndex = iteration % numAgents
+                legalActions = state.getLegalActions(agentIndex)
+                if len(legalActions)==0:
+                    return None, self.evaluationFunction(state)
+                else:
+                    successors = [state.generateSuccessor(agentIndex, action)
+                                  for action in legalActions]
+                    nodeValues = [NodeValue(successor, iteration+1) for successor in successors]
+                    values = [node[1] for node in nodeValues]
+                    if agentIndex==0:
+                        nodeIndex = values.index(max(values))
+                        return legalActions[nodeIndex], values[nodeIndex]
+                    else:
+                        return None, 1. / len(legalActions) * sum(values) 
+         
+        numAgents = gameState.getNumAgents()
+        maxIter = self.depth * numAgents
+         
+        action, score = NodeValue(gameState, 0)
+        return action
 
 def betterEvaluationFunction(currentGameState):
     """
@@ -217,8 +241,12 @@ def betterEvaluationFunction(currentGameState):
 
       DESCRIPTION: <write something here so we know what you did>
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    food = currentGameState.getFood()
+    position = currentGameState.getPacmanPosition()
+
+    return currentGameState.getScore() + 1. / (1 + min([manhattanDistance(position, f) 
+                                                        for f in food.asList()] + [10**4]))
+    
 
 # Abbreviation
 better = betterEvaluationFunction
