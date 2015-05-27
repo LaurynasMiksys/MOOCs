@@ -17,8 +17,6 @@ from game import Directions
 import random, util
 
 from game import Agent
-from pylearn2.utils import iteration
-from numpy.oldnumeric.random_array import beta
 
 class ReflexAgent(Agent):
     """
@@ -29,7 +27,6 @@ class ReflexAgent(Agent):
       it in any way you see fit, so long as you don't touch our method
       headers.
     """
-
 
     def getAction(self, gameState):
         """
@@ -75,7 +72,6 @@ class ReflexAgent(Agent):
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
         
-        "*** YOUR CODE HERE ***"
         foodScore = 1. / (1 + min([manhattanDistance(newPos, food) 
                                    for food in newFood.asList()] + [100]))
         ghostScore = -1. / (0.001 + 
@@ -135,49 +131,15 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.getNumAgents():
             Returns the total number of agents in the game
         """
-#         numAgents = gameState.getNumAgents()
-#         maxIter = self.depth * numAgents
-#          
-#         states = []
-#         curStates = [([], gameState)]
-#         for depth in range(self.depth):
-#             for agentIndex in range(numAgents):
-#                 newStates = []
-#                 for actions, state in curStates:
-#                     legalActions = state.getLegalActions(agentIndex)
-#                     newStates += [(actions + [action], state.generateSuccessor(agentIndex, action)) for action in legalActions]
-#                 states += newStates
-#                 curStates = newStates
-#          
-#         scores = []
-#         for item in states[::-1]:
-#             actions, state = item
-#             if len(actions)==maxIter:
-#                 scores += [(actions, self.evaluationFunction(state))]
-#             else:
-#                 agentIndex = (len(actions)) % numAgents
-#                 inputs = [stateScore for actionsScore, stateScore in scores if (actionsScore[:len(actions)]==actions) and (len(actionsScore)==len(actions)+1)]
-#                 f = max if agentIndex == 0 else min
-#                 value = f(inputs) if len(inputs)>0 else self.evaluationFunction(state)
-#                 scores += [(actions, value)]
-#  
-#         actions = [item[0][0] for item in scores if len(item[0])==1]
-#         values = [item[1] for item in scores if len(item[0])==1]
-#          
-#         return actions[values.index(max(values))]
-
-        numAgents = gameState.getNumAgents()
-        maxIter = self.depth * numAgents
-         
         def NodeValue(state, iteration):
              
             if iteration==maxIter:
-                return (None, self.evaluationFunction(state))
+                return None, self.evaluationFunction(state)
             else:
                 agentIndex = iteration % numAgents
                 legalActions = state.getLegalActions(agentIndex)
                 if len(legalActions)==0:
-                    return (None, self.evaluationFunction(state))
+                    return None, self.evaluationFunction(state)
                 else:
                     successors = [state.generateSuccessor(agentIndex, action)
                                   for action in legalActions]
@@ -187,10 +149,11 @@ class MinimaxAgent(MultiAgentSearchAgent):
                     nodeIndex = values.index(f(values))
                     return legalActions[nodeIndex], values[nodeIndex]
          
+        numAgents = gameState.getNumAgents()
+        maxIter = self.depth * numAgents
+         
         action, score = NodeValue(gameState, 0)
         return action
-        
-
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
@@ -201,46 +164,34 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
-        numAgents = gameState.getNumAgents()
-        maxIter = self.depth * numAgents
-        
-        global alpha, beta
-        alpha = -10 ** 8
-        beta = 10 ** 8
-        
-        def NodeValue(state, iteration):
+        def NodeValue(state, iteration, alpha, beta):
             
-            global alpha, beta
             if iteration==maxIter:
-                return (None, self.evaluationFunction(state))
+                return None, self.evaluationFunction(state)
             else:
                 agentIndex = iteration % numAgents
                 legalActions = state.getLegalActions(agentIndex)
                 if len(legalActions)==0:
-                    return (None, self.evaluationFunction(state))
+                    return None, self.evaluationFunction(state)
                 else:
                     v = -10 ** 8 if agentIndex==0 else 10 ** 8 
+                    extremeAction = None
                     for action in legalActions:
-                        extremeAction = None
-                        sucAction, sucValue = NodeValue(state.generateSuccessor(agentIndex, action), iteration+1)
+                        sucAction, sucValue = NodeValue(state.generateSuccessor(agentIndex, action), iteration+1, alpha, beta)
                         if agentIndex==0:
-                            print agentIndex, action
-                            if v < sucValue:
-                                v = sucValue
-                                extremeAction = action
+                            (v, extremeAction) = (sucValue, action) if v < sucValue else (v, extremeAction)
                             if v > beta: return extremeAction, v
                             alpha = max([alpha, v])
                         else:
-                            print agentIndex, action
-                            if v > sucValue:
-                                v = sucValue
-                                extremeAction = action
+                            (v, extremeAction) = (sucValue, action) if v > sucValue else (v, extremeAction)
                             if v < alpha: return extremeAction, v
                             beta = min([beta, v])
                     return extremeAction, v
         
-        action, value = NodeValue(gameState, 0)
-        print action, value
+        numAgents = gameState.getNumAgents()
+        maxIter = self.depth * numAgents
+        
+        action, score = NodeValue(gameState, 0, -10**8, 10**8)
         return action
             
 
